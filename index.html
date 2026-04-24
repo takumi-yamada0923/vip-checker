@@ -27,21 +27,33 @@ th, td {
 thead th {
   position: sticky;
   top: 0;
-  background: #fff;
   z-index: 10;
 }
 
+/* ヘッダー */
 th {
   height: 80px;
   font-size: 1.2em;
+  background: #fff;
 }
+
+/* ★ カラム色（ヘッダー用） */
+th.col1 { background:#4caf50; color:#fff; }
+th.col2 { background:#2196f3; color:#fff; }
+th.col3 { background:#ff9800; color:#fff; }
+th.col4 { background:#e91e63; color:#fff; }
 
 th input {
   height: 40px;
   font-size: 1.1em;
   width: 90%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: center;
 }
 
+/* キャラ */
 .char-cell {
   font-size: 1.5em;
   padding: 12px;
@@ -82,6 +94,7 @@ td button {
   color:#000;
 }
 
+/* ヘッダー上部 */
 .header {
   display: flex;
   justify-content: space-between;
@@ -103,8 +116,6 @@ td button {
 .header a:hover {
   text-decoration: underline;
 }
-
-  
 </style>
 </head>
 
@@ -142,7 +153,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* 色定義 */
+/* 色 */
 const colColors = {
   1: "#4caf50",
   2: "#2196f3",
@@ -150,7 +161,7 @@ const colColors = {
   4: "#e91e63"
 };
 
-/* 全キャラ */
+/* キャラ */
 const fighters = [
 "mario","donkey_kong","link","samus","dark_samus","yoshi","kirby","fox",
 "pikachu","luigi","ness","captain_falcon","purin","peach","daisy","koopa",
@@ -167,7 +178,6 @@ const fighters = [
 "mii_fighter_1","mii_fighter_2","mii_fighter_3"
 ];
 
-/* 名前 */
 const nameMap = {
 mario:"マリオ",donkey_kong:"ドンキーコング",link:"リンク",samus:"サムス",
 dark_samus:"ダークサムス",yoshi:"ヨッシー",kirby:"カービィ",fox:"フォックス",
@@ -246,90 +256,7 @@ function toggle(row, col, btn) {
   btn.className = (isVIP ? "nonvip" : "vip") + " col" + col;
 
   db.ref(`vip/${row}/${col}`).set(newVal);
-  updateRowColor(row);
 }
-
-/* ★ グラデーション色付け */
-function updateRowColor(row) {
-  const tr = document.querySelectorAll("tbody tr")[row];
-  const buttons = tr.querySelectorAll("button");
-  const nameCell = tr.querySelector(".char-name");
-
-  const vipCols = [];
-  buttons.forEach((btn, i) => {
-    if (btn.textContent === "VIP") vipCols.push(i + 1);
-  });
-
-  if (vipCols.length === 0) {
-    nameCell.style.background = "";
-    nameCell.style.color = "";
-    return;
-  }
-
-  const colors = vipCols.map(col => colColors[col]);
-
-  if (colors.length === 1) {
-    nameCell.style.background = colors[0];
-    nameCell.style.color = "#fff";
-    return;
-  }
-
-  const step = 100 / colors.length;
-  let gradient = "linear-gradient(to right,";
-
-  colors.forEach((color, i) => {
-    const start = step * i;
-    const end = step * (i + 1);
-    gradient += `${color} ${start}%, ${color} ${end}%,`;
-  });
-
-  gradient = gradient.slice(0, -1) + ")";
-  nameCell.style.background = gradient;
-  nameCell.style.color = "#fff";
-}
-
-/* Firebase反映 */
-db.ref().on("value", snap => {
-  const data = snap.val();
-  if (!data) return;
-
-  if (data.vip) {
-    document.querySelectorAll("tbody tr").forEach((tr, row) => {
-      for (let col = 1; col <= 4; col++) {
-        const btn = tr.children[col+1].querySelector("button");
-        const val = data.vip?.[row]?.[col];
-
-        if (val === "VIP") {
-          btn.textContent = "VIP";
-          btn.className = `vip col${col}`;
-        } else {
-          btn.textContent = "非VIP";
-          btn.className = `nonvip col${col}`;
-        }
-      }
-      updateRowColor(row);
-    });
-  }
-
-  if (data.headers) {
-    col1.value = data.headers.col1 || "";
-    col2.value = data.headers.col2 || "";
-    col3.value = data.headers.col3 || "";
-    col4.value = data.headers.col4 || "";
-  }
-});
-
-/* ヘッダー保存 */
-["col1","col2","col3","col4"].forEach(id => {
-  document.getElementById(id).addEventListener("input", () => {
-    db.ref("headers").set({
-      col1: col1.value,
-      col2: col2.value,
-      col3: col3.value,
-      col4: col4.value
-    });
-  });
-});
 </script>
 
 </body>
