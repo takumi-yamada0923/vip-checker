@@ -12,6 +12,7 @@ body {
   font-family: sans-serif;
 }
 
+/* ===== テーブル ===== */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -19,17 +20,25 @@ table {
 
 th, td {
   border: 1px solid #ccc;
-  padding: 6px;
   text-align: center;
 }
 
-th input {
-  width: 90%;
+/* ===== キャラ列（大きく） ===== */
+.char-cell {
+  font-size: 1.5em;
+  padding: 12px;
 }
 
+.icon {
+  width: 80px;   /* 2倍 */
+  height: 80px;
+}
+
+/* ===== ボタン列（小さく） ===== */
 button {
-  width: 70px;
-  height: 35px;
+  width: 60px;
+  height: 30px;
+  font-size: 0.9em;
   cursor: pointer;
 }
 
@@ -47,9 +56,8 @@ button {
   color: white;
 }
 
-.icon {
-  width: 40px;
-  height: 40px;
+th input {
+  width: 90%;
 }
 </style>
 </head>
@@ -59,17 +67,17 @@ button {
 <h2>スマブラVIP管理</h2>
 
 <table id="table">
-  <thead>
-    <tr>
-      <th>画像</th>
-      <th>キャラ</th>
-      <th><input id="col1"></th>
-      <th><input id="col2"></th>
-      <th><input id="col3"></th>
-      <th><input id="col4"></th>
-    </tr>
-  </thead>
-  <tbody></tbody>
+<thead>
+<tr>
+  <th>画像</th>
+  <th>キャラ</th>
+  <th><input id="col1"></th>
+  <th><input id="col2"></th>
+  <th><input id="col3"></th>
+  <th><input id="col4"></th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
 
 <script>
@@ -83,32 +91,45 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ===== キャラ + アイコン =====
-const characters = [
-  {name:"マリオ", img:"https://www.smashbros.com/assets_v2/img/fighter/mario/main.png"},
-  {name:"リンク", img:"https://www.smashbros.com/assets_v2/img/fighter/link/main.png"},
-  {name:"カービィ", img:"https://www.smashbros.com/assets_v2/img/fighter/kirby/main.png"},
-  {name:"ピカチュウ", img:"https://www.smashbros.com/assets_v2/img/fighter/pikachu/main.png"}
+/* ===== 全キャラ（略称は公式URL準拠） ===== */
+const fighters = [
+"mario","donkey","link","samus","dark_samus","yoshi","kirby","fox",
+"pikachu","luigi","ness","captain","purin","peach","daisy","koopa",
+"ice_climber","sheik","zelda","dr_mario","pichu","falco","marth",
+"lucina","younglink","ganon","mewtwo","roy","chrom","mr_gamewatch",
+"metaknight","pit","darkpit","zero_suit_samus","wario","snake",
+"ike","pokemon_trainer","diddy","lucas","sonic","dedede","olimar",
+"lucario","robot","toonlink","wolf","villager","megaman","wiifit",
+"rosetta","littlemac","gekkouga","palutena","pacman","reflet",
+"shulk","koopajr","duckhunt","ryu","ken","cloud","kamui","bayonetta",
+"inkling","ridley","simon","richter","krool","shizue","gaogaen",
+"packun","joker","brave","banjo","terry","byleth","minmin","steve",
+"sephiroth","pyra","mythra","kazuya","sora"
 ];
 
+/* 表示名（最低限） */
+const nameMap = {
+  mario:"マリオ", link:"リンク", kirby:"カービィ", pikachu:"ピカチュウ"
+};
+
+/* ===== 描画 ===== */
 const tbody = document.querySelector("#table tbody");
 
-// ===== 描画 =====
-characters.forEach((ch, i) => {
+fighters.forEach((id, i) => {
   const tr = document.createElement("tr");
 
   // 画像
   const tdImg = document.createElement("td");
   const img = document.createElement("img");
-  img.src = ch.img;
+  img.src = `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`;
   img.className = "icon";
   tdImg.appendChild(img);
   tr.appendChild(tdImg);
 
-  // キャラ名
+  // 名前
   const tdName = document.createElement("td");
-  tdName.textContent = ch.name;
-  tdName.classList.add("char-name");
+  tdName.textContent = nameMap[id] || id;
+  tdName.className = "char-cell char-name";
   tr.appendChild(tdName);
 
   // ボタン
@@ -128,11 +149,11 @@ characters.forEach((ch, i) => {
   tbody.appendChild(tr);
 });
 
-// ===== VIP切替 =====
+/* ===== 切替 ===== */
 function toggle(row, col, btn) {
   const isVIP = btn.textContent === "VIP";
-
   const newVal = isVIP ? "非VIP" : "VIP";
+
   btn.textContent = newVal;
   btn.className = isVIP ? "nonvip" : "vip";
 
@@ -141,45 +162,22 @@ function toggle(row, col, btn) {
   updateRowColor(row);
 }
 
-// ===== 行の色更新 =====
+/* ===== 行色 ===== */
 function updateRowColor(row) {
   const tr = document.querySelectorAll("tbody tr")[row];
   const buttons = tr.querySelectorAll("button");
-
   const hasVIP = Array.from(buttons).some(b => b.textContent === "VIP");
 
   const nameCell = tr.querySelector(".char-name");
 
-  if (hasVIP) {
-    nameCell.classList.add("char-vip");
-  } else {
-    nameCell.classList.remove("char-vip");
-  }
+  if (hasVIP) nameCell.classList.add("char-vip");
+  else nameCell.classList.remove("char-vip");
 }
 
-// ===== ヘッダー保存 =====
-["col1","col2","col3","col4"].forEach(id => {
-  document.getElementById(id).addEventListener("change", () => {
-    db.ref("headers").set({
-      col1: col1.value,
-      col2: col2.value,
-      col3: col3.value,
-      col4: col4.value
-    });
-  });
-});
-
-// ===== Firebase反映 =====
+/* ===== Firebase反映 ===== */
 db.ref().on("value", snap => {
   const data = snap.val();
   if (!data) return;
-
-  if (data.headers) {
-    col1.value = data.headers.col1 || "";
-    col2.value = data.headers.col2 || "";
-    col3.value = data.headers.col3 || "";
-    col4.value = data.headers.col4 || "";
-  }
 
   if (data.vip) {
     document.querySelectorAll("tbody tr").forEach((tr, row) => {
