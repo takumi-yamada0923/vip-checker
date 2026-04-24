@@ -1,12 +1,170 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIP Checker</title>
+<meta charset="utf-8">
+<title>スマブラVIP管理</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+body {
+  font-family: sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th input {
+  width: 90%;
+  font-size: 1em;
+}
+
+button {
+  width: 80px;
+  height: 40px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.vip {
+  background-color: #4caf50;
+  color: white;
+}
+
+.nonvip {
+  background-color: #ccc;
+}
+</style>
 </head>
+
 <body>
-    <h1>VIP Checker</h1>
-    <p>Welcome to VIP Checker</p>
+
+<h2>スマブラVIP管理</h2>
+
+<table id="table">
+  <thead>
+    <tr>
+      <th>キャラ</th>
+      <th><input id="col1" placeholder="列1"></th>
+      <th><input id="col2" placeholder="列2"></th>
+      <th><input id="col3" placeholder="列3"></th>
+      <th><input id="col4" placeholder="列4"></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+// ===== Firebase =====
+const firebaseConfig = {
+  apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
+  authDomain: "zatsudan-mate.firebaseapp.com",
+  databaseURL: "https://zatsudan-mate-default-rtdb.firebaseio.com",
+  projectId: "zatsudan-mate",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ===== キャラ一覧（例） =====
+const characters = [
+  "マリオ","ドンキー","リンク","サムス","ヨッシー",
+  "カービィ","フォックス","ピカチュウ","ルイージ"
+];
+
+// ===== 初期描画 =====
+const tbody = document.querySelector("#table tbody");
+
+characters.forEach((name, i) => {
+  const tr = document.createElement("tr");
+
+  // キャラ名
+  const tdName = document.createElement("td");
+  tdName.textContent = name;
+  tr.appendChild(tdName);
+
+  // 4列ボタン
+  for (let col = 1; col <= 4; col++) {
+    const td = document.createElement("td");
+    const btn = document.createElement("button");
+
+    btn.textContent = "非VIP";
+    btn.className = "nonvip";
+
+    btn.onclick = () => toggle(i, col, btn);
+
+    td.appendChild(btn);
+    tr.appendChild(td);
+  }
+
+  tbody.appendChild(tr);
+});
+
+// ===== 切替処理 =====
+function toggle(row, col, btn) {
+  const isVIP = btn.textContent === "VIP";
+
+  const newVal = isVIP ? "非VIP" : "VIP";
+  btn.textContent = newVal;
+  btn.className = isVIP ? "nonvip" : "vip";
+
+  db.ref(`vip/${row}/${col}`).set(newVal);
+}
+
+// ===== ヘッダー保存 =====
+["col1","col2","col3","col4"].forEach(id => {
+  document.getElementById(id).addEventListener("change", () => {
+    db.ref("headers").set({
+      col1: col1.value,
+      col2: col2.value,
+      col3: col3.value,
+      col4: col4.value
+    });
+  });
+});
+
+// ===== Firebase反映 =====
+db.ref().on("value", snap => {
+  const data = snap.val();
+  if (!data) return;
+
+  // ヘッダー
+  if (data.headers) {
+    col1.value = data.headers.col1 || "";
+    col2.value = data.headers.col2 || "";
+    col3.value = data.headers.col3 || "";
+    col4.value = data.headers.col4 || "";
+  }
+
+  // ボタン状態
+  if (data.vip) {
+    document.querySelectorAll("tbody tr").forEach((tr, row) => {
+      for (let col = 1; col <= 4; col++) {
+        const btn = tr.children[col].querySelector("button");
+        const val = data.vip?.[row]?.[col];
+
+        if (val === "VIP") {
+          btn.textContent = "VIP";
+          btn.className = "vip";
+        } else {
+          btn.textContent = "非VIP";
+          btn.className = "nonvip";
+        }
+      }
+    });
+  }
+});
+</script>
+
 </body>
 </html>
