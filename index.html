@@ -13,7 +13,6 @@ body {
   margin: 0;
 }
 
-/* ===== テーブル ===== */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -24,7 +23,7 @@ th, td {
   text-align: center;
 }
 
-/* ===== ヘッダー固定 ===== */
+/* ヘッダー固定 */
 thead th {
   position: sticky;
   top: 0;
@@ -32,7 +31,6 @@ thead th {
   z-index: 10;
 }
 
-/* ヘッダー */
 th {
   height: 80px;
   font-size: 1.2em;
@@ -44,7 +42,6 @@ th input {
   width: 90%;
 }
 
-/* ===== キャラ ===== */
 .char-cell {
   font-size: 1.5em;
   padding: 12px;
@@ -55,12 +52,10 @@ th input {
   height: 80px;
 }
 
-/* ===== 行 ===== */
 tbody tr {
   height: 70px;
 }
 
-/* ===== ボタン（完全フィット） ===== */
 td {
   padding: 0;
   height: 70px;
@@ -70,34 +65,33 @@ td button {
   display: block;
   width: 100%;
   height: 100%;
-  font-size: 1.5em;
+  font-size: 2em;
   border: none;
   cursor: pointer;
 }
 
-/* ===== VIPカラー ===== */
+/* VIP色 */
 .vip.col1 { background:#4caf50; color:#fff; }
 .vip.col2 { background:#2196f3; color:#fff; }
 .vip.col3 { background:#ff9800; color:#fff; }
 .vip.col4 { background:#e91e63; color:#fff; }
 
-/* 非VIPは色なし */
+/* 非VIP */
 .nonvip {
   background:#fff;
   color:#000;
-}
-
-/* キャラVIP */
-.char-vip {
-  background:#4caf50;
-  color:#fff;
 }
 </style>
 </head>
 
 <body>
 
-<h2 style="padding:10px;">スマブラVIP管理</h2>
+<div class="header">
+  <h2>スマブラVIP管理</h2>
+  <a href="https://takumi-yamada0923.github.io/bingo-viewer/" target="_blank">
+    チームビンゴはこちら
+  </a>
+</div>
 
 <table id="table">
 <thead>
@@ -124,7 +118,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* ===== 全キャラ ===== */
+/* 色定義 */
+const colColors = {
+  1: "#4caf50",
+  2: "#2196f3",
+  3: "#ff9800",
+  4: "#e91e63"
+};
+
+/* 全キャラ */
 const fighters = [
 "mario","donkey_kong","link","samus","dark_samus","yoshi","kirby","fox",
 "pikachu","luigi","ness","captain_falcon","purin","peach","daisy","koopa",
@@ -141,7 +143,7 @@ const fighters = [
 "mii_fighter_1","mii_fighter_2","mii_fighter_3"
 ];
 
-/* ===== 名前 ===== */
+/* 名前 */
 const nameMap = {
 mario:"マリオ",donkey_kong:"ドンキーコング",link:"リンク",samus:"サムス",
 dark_samus:"ダークサムス",yoshi:"ヨッシー",kirby:"カービィ",fox:"フォックス",
@@ -175,23 +177,17 @@ mii_fighter_1:"Miiファイター(格闘)",mii_fighter_2:"Miiファイター(剣
 
 const tbody = document.querySelector("#table tbody");
 
-/* ===== 描画 ===== */
+/* 描画 */
 fighters.forEach((id, i) => {
   const tr = document.createElement("tr");
 
   const tdImg = document.createElement("td");
   const img = document.createElement("img");
 
-  // ★ Mii修正（ちゃんと表示）
-  if (id === "mii_fighter_1") {
-    img.src = "./mii1.png";
-  } else if (id === "mii_fighter_2") {
-    img.src = "./mii2.png";
-  } else if (id === "mii_fighter_3") {
-    img.src = "./mii3.png";
-  } else {
-    img.src = `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`;
-  }
+  if (id === "mii_fighter_1") img.src = "./mii1.png";
+  else if (id === "mii_fighter_2") img.src = "./mii2.png";
+  else if (id === "mii_fighter_3") img.src = "./mii3.png";
+  else img.src = `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`;
 
   img.className = "icon";
   tdImg.appendChild(img);
@@ -217,7 +213,7 @@ fighters.forEach((id, i) => {
   tbody.appendChild(tr);
 });
 
-/* ===== 切替 ===== */
+/* 切替 */
 function toggle(row, col, btn) {
   const isVIP = btn.textContent === "VIP";
   const newVal = isVIP ? "非VIP" : "VIP";
@@ -229,18 +225,46 @@ function toggle(row, col, btn) {
   updateRowColor(row);
 }
 
-/* ===== 行色 ===== */
+/* ★ グラデーション色付け */
 function updateRowColor(row) {
   const tr = document.querySelectorAll("tbody tr")[row];
-  const hasVIP = Array.from(tr.querySelectorAll("button"))
-    .some(b => b.textContent === "VIP");
-
+  const buttons = tr.querySelectorAll("button");
   const nameCell = tr.querySelector(".char-name");
-  if (hasVIP) nameCell.classList.add("char-vip");
-  else nameCell.classList.remove("char-vip");
+
+  const vipCols = [];
+  buttons.forEach((btn, i) => {
+    if (btn.textContent === "VIP") vipCols.push(i + 1);
+  });
+
+  if (vipCols.length === 0) {
+    nameCell.style.background = "";
+    nameCell.style.color = "";
+    return;
+  }
+
+  const colors = vipCols.map(col => colColors[col]);
+
+  if (colors.length === 1) {
+    nameCell.style.background = colors[0];
+    nameCell.style.color = "#fff";
+    return;
+  }
+
+  const step = 100 / colors.length;
+  let gradient = "linear-gradient(to right,";
+
+  colors.forEach((color, i) => {
+    const start = step * i;
+    const end = step * (i + 1);
+    gradient += `${color} ${start}%, ${color} ${end}%,`;
+  });
+
+  gradient = gradient.slice(0, -1) + ")";
+  nameCell.style.background = gradient;
+  nameCell.style.color = "#fff";
 }
 
-/* ===== Firebase反映 ===== */
+/* Firebase反映 */
 db.ref().on("value", snap => {
   const data = snap.val();
   if (!data) return;
@@ -271,7 +295,7 @@ db.ref().on("value", snap => {
   }
 });
 
-/* ===== ヘッダー保存 ===== */
+/* ヘッダー保存 */
 ["col1","col2","col3","col4"].forEach(id => {
   document.getElementById(id).addEventListener("input", () => {
     db.ref("headers").set({
