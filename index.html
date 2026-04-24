@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <title>スマブラVIP管理</title>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -20,19 +19,17 @@ table {
 
 th, td {
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 6px;
   text-align: center;
 }
 
 th input {
   width: 90%;
-  font-size: 1em;
 }
 
 button {
-  width: 80px;
-  height: 40px;
-  font-size: 1em;
+  width: 70px;
+  height: 35px;
   cursor: pointer;
 }
 
@@ -44,6 +41,16 @@ button {
 .nonvip {
   background-color: #ccc;
 }
+
+.char-vip {
+  background-color: #4caf50;
+  color: white;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+}
 </style>
 </head>
 
@@ -54,18 +61,18 @@ button {
 <table id="table">
   <thead>
     <tr>
+      <th>画像</th>
       <th>キャラ</th>
-      <th><input id="col1" placeholder="列1"></th>
-      <th><input id="col2" placeholder="列2"></th>
-      <th><input id="col3" placeholder="列3"></th>
-      <th><input id="col4" placeholder="列4"></th>
+      <th><input id="col1"></th>
+      <th><input id="col2"></th>
+      <th><input id="col3"></th>
+      <th><input id="col4"></th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
 
 <script>
-// ===== Firebase =====
 const firebaseConfig = {
   apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
   authDomain: "zatsudan-mate.firebaseapp.com",
@@ -76,24 +83,35 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ===== キャラ一覧（例） =====
+// ===== キャラ + アイコン =====
 const characters = [
-  "マリオ","ドンキー","リンク","サムス","ヨッシー",
-  "カービィ","フォックス","ピカチュウ","ルイージ"
+  {name:"マリオ", img:"https://www.smashbros.com/assets_v2/img/fighter/mario/main.png"},
+  {name:"リンク", img:"https://www.smashbros.com/assets_v2/img/fighter/link/main.png"},
+  {name:"カービィ", img:"https://www.smashbros.com/assets_v2/img/fighter/kirby/main.png"},
+  {name:"ピカチュウ", img:"https://www.smashbros.com/assets_v2/img/fighter/pikachu/main.png"}
 ];
 
-// ===== 初期描画 =====
 const tbody = document.querySelector("#table tbody");
 
-characters.forEach((name, i) => {
+// ===== 描画 =====
+characters.forEach((ch, i) => {
   const tr = document.createElement("tr");
+
+  // 画像
+  const tdImg = document.createElement("td");
+  const img = document.createElement("img");
+  img.src = ch.img;
+  img.className = "icon";
+  tdImg.appendChild(img);
+  tr.appendChild(tdImg);
 
   // キャラ名
   const tdName = document.createElement("td");
-  tdName.textContent = name;
+  tdName.textContent = ch.name;
+  tdName.classList.add("char-name");
   tr.appendChild(tdName);
 
-  // 4列ボタン
+  // ボタン
   for (let col = 1; col <= 4; col++) {
     const td = document.createElement("td");
     const btn = document.createElement("button");
@@ -110,7 +128,7 @@ characters.forEach((name, i) => {
   tbody.appendChild(tr);
 });
 
-// ===== 切替処理 =====
+// ===== VIP切替 =====
 function toggle(row, col, btn) {
   const isVIP = btn.textContent === "VIP";
 
@@ -119,6 +137,24 @@ function toggle(row, col, btn) {
   btn.className = isVIP ? "nonvip" : "vip";
 
   db.ref(`vip/${row}/${col}`).set(newVal);
+
+  updateRowColor(row);
+}
+
+// ===== 行の色更新 =====
+function updateRowColor(row) {
+  const tr = document.querySelectorAll("tbody tr")[row];
+  const buttons = tr.querySelectorAll("button");
+
+  const hasVIP = Array.from(buttons).some(b => b.textContent === "VIP");
+
+  const nameCell = tr.querySelector(".char-name");
+
+  if (hasVIP) {
+    nameCell.classList.add("char-vip");
+  } else {
+    nameCell.classList.remove("char-vip");
+  }
 }
 
 // ===== ヘッダー保存 =====
@@ -138,7 +174,6 @@ db.ref().on("value", snap => {
   const data = snap.val();
   if (!data) return;
 
-  // ヘッダー
   if (data.headers) {
     col1.value = data.headers.col1 || "";
     col2.value = data.headers.col2 || "";
@@ -146,11 +181,10 @@ db.ref().on("value", snap => {
     col4.value = data.headers.col4 || "";
   }
 
-  // ボタン状態
   if (data.vip) {
     document.querySelectorAll("tbody tr").forEach((tr, row) => {
       for (let col = 1; col <= 4; col++) {
-        const btn = tr.children[col].querySelector("button");
+        const btn = tr.children[col+1].querySelector("button");
         const val = data.vip?.[row]?.[col];
 
         if (val === "VIP") {
@@ -161,6 +195,7 @@ db.ref().on("value", snap => {
           btn.className = "nonvip";
         }
       }
+      updateRowColor(row);
     });
   }
 });
