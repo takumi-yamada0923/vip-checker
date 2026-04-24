@@ -23,37 +23,37 @@ th, td {
   text-align: center;
 }
 
-/* ヘッダー固定 */
+/* ===== ヘッダー固定 ===== */
 thead th {
   position: sticky;
   top: 0;
+  background: #fff;
   z-index: 10;
 }
 
-/* ヘッダー */
+/* ===== ヘッダー ===== */
 th {
   height: 80px;
   font-size: 1.2em;
-  background: #fff;
 }
 
-/* ★ カラム色（ヘッダー用） */
-th.col1 { background:#4caf50; color:#fff; }
-th.col2 { background:#2196f3; color:#fff; }
-th.col3 { background:#ff9800; color:#fff; }
-th.col4 { background:#e91e63; color:#fff; }
+/* ★ 下線だけ色付け（今回の本命） */
+th.col1 { border-bottom: 4px solid #4caf50; }
+th.col2 { border-bottom: 4px solid #2196f3; }
+th.col3 { border-bottom: 4px solid #ff9800; }
+th.col4 { border-bottom: 4px solid #e91e63; }
 
 th input {
   height: 40px;
   font-size: 1.1em;
   width: 90%;
-  background: transparent;
-  border: none;
-  color: inherit;
+  background: #fff;
+  color: #000;
+  border: 1px solid #ccc;
   text-align: center;
 }
 
-/* キャラ */
+/* ===== キャラ ===== */
 .char-cell {
   font-size: 1.5em;
   padding: 12px;
@@ -64,6 +64,7 @@ th input {
   height: 80px;
 }
 
+/* ===== 行 ===== */
 tbody tr {
   height: 70px;
 }
@@ -73,6 +74,7 @@ td {
   height: 70px;
 }
 
+/* ===== ボタン（完全フィット） ===== */
 td button {
   display: block;
   width: 100%;
@@ -82,7 +84,7 @@ td button {
   cursor: pointer;
 }
 
-/* VIP色 */
+/* ===== VIPカラー ===== */
 .vip.col1 { background:#4caf50; color:#fff; }
 .vip.col2 { background:#2196f3; color:#fff; }
 .vip.col3 { background:#ff9800; color:#fff; }
@@ -94,7 +96,7 @@ td button {
   color:#000;
 }
 
-/* ヘッダー上部 */
+/* ===== 上部ヘッダー ===== */
 .header {
   display: flex;
   justify-content: space-between;
