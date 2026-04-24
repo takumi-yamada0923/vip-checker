@@ -23,6 +23,18 @@ th, td {
   text-align: center;
 }
 
+/* ヘッダーを大きく */
+th {
+  height: 80px;         /* ← 好みで調整（今の約2倍） */
+  font-size: 1.2em;
+}
+
+/* 入力欄も大きく */
+th input {
+  height: 40px;
+  font-size: 1.1em;
+}
+  
 /* ===== キャラ列（大きく） ===== */
 .char-cell {
   font-size: 1.5em;
@@ -94,7 +106,7 @@ const db = firebase.database();
 /* ===== 全キャラ（略称は公式URL準拠） ===== */
 const fighters = [
   "mario",
-  "donkey_cong",
+  "donkey_kong",
   "link",
   "samus",
   "dark_samus",
@@ -131,7 +143,7 @@ const fighters = [
   "snake",
   "ike",
   "pokemon_trainer",
-  "diddy_cong",
+  "diddy_kong",
   "lucas",
   "sonic",
   "dedede",
@@ -184,7 +196,7 @@ const fighters = [
 /* 表示名（最低限） */
 const nameMap = {
   mario:"マリオ",
-  donkey_cong:"ドンキーコング",
+  donkey_kong:"ドンキーコング",
   link:"リンク",
   samus:"サムス",
   dark_samus:"ダークサムス",
@@ -221,7 +233,7 @@ const nameMap = {
   snake:"スネーク",
   ike:"アイク",
   pokemon_trainer:"ポケモントレーナー",
-  diddy_cong:"ディディーコング",
+  diddy_kong:"ディディーコング",
   lucas:"リュカ",
   sonic:"ソニック",
   dedede:"デデデ",
@@ -280,7 +292,15 @@ fighters.forEach((id, i) => {
   // 画像
   const tdImg = document.createElement("td");
   const img = document.createElement("img");
-  img.src = `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`;
+  if (id == "mii_fighter_1"){
+    img.src = 'https://smashwiki.info/Mii_%E6%A0%BC%E9%97%98%E3%82%BF%E3%82%A4%E3%83%97_(SP)#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:%E5%85%AC%E5%BC%8F%E7%B5%B5_SP_Mii_%E6%A0%BC%E9%97%98%E3%82%BF%E3%82%A4%E3%83%97.png';
+  }else if (id == "mii_fighter_2"){
+    img.src = 'https://smashwiki.info/Mii_%E5%89%A3%E8%A1%93%E3%82%BF%E3%82%A4%E3%83%97_%28SP%29#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:%E5%85%AC%E5%BC%8F%E7%B5%B5_SP_Mii_%E5%89%A3%E8%A1%93%E3%82%BF%E3%82%A4%E3%83%97.png';
+  }else if (id == "mii_fighter_3"){
+    img.src = 'https://smashwiki.info/Mii_%E5%B0%84%E6%92%83%E3%82%BF%E3%82%A4%E3%83%97_(SP)#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:%E5%85%AC%E5%BC%8F%E7%B5%B5_SP_Mii_%E5%B0%84%E6%92%83%E3%82%BF%E3%82%A4%E3%83%97.png';
+  }else {
+    img.src = `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`;
+  }
   img.className = "icon";
   tdImg.appendChild(img);
   tr.appendChild(tdImg);
@@ -355,6 +375,25 @@ db.ref().on("value", snap => {
       updateRowColor(row);
     });
   }
+  // ヘッダー復元
+  if (data.headers) {
+    document.getElementById("col1").value = data.headers.col1 || "";
+    document.getElementById("col2").value = data.headers.col2 || "";
+    document.getElementById("col3").value = data.headers.col3 || "";
+    document.getElementById("col4").value = data.headers.col4 || "";
+  }
+});
+
+// ヘッダー保存
+["col1","col2","col3","col4"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    db.ref("headers").set({
+      col1: document.getElementById("col1").value,
+      col2: document.getElementById("col2").value,
+      col3: document.getElementById("col3").value,
+      col4: document.getElementById("col4").value
+    });
+  });
 });
 </script>
 
