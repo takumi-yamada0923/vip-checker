@@ -12,7 +12,6 @@ body {
   font-family: sans-serif;
 }
 
-/* ===== テーブル ===== */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -23,53 +22,66 @@ th, td {
   text-align: center;
 }
 
-/* ヘッダーを大きく */
+/* ヘッダー */
 th {
-  height: 80px;         /* ← 好みで調整（今の約2倍） */
+  height: 80px;
   font-size: 1.2em;
 }
 
-/* 入力欄も大きく */
 th input {
   height: 40px;
   font-size: 1.1em;
+  width: 90%;
 }
-  
-/* ===== キャラ列（大きく） ===== */
+
+/* キャラ */
 .char-cell {
   font-size: 1.5em;
   padding: 12px;
 }
 
 .icon {
-  width: 80px;   /* 2倍 */
+  width: 80px;
   height: 80px;
 }
 
-/* ===== ボタン列（小さく） ===== */
-button {
-  width: 60px;
-  height: 30px;
-  font-size: 0.9em;
+/* 行 */
+tbody tr {
+  height: 60px;
+}
+
+/* ボタン */
+td {
+  padding: 0;
+}
+
+td button {
+  width: 100%;
+  height: 100%;
+  font-size: 1em;
+  border: none;
   cursor: pointer;
+  transition: 0.15s;
 }
 
-.vip {
-  background-color: #4caf50;
-  color: white;
+td button:hover {
+  opacity: 0.85;
 }
 
-.nonvip {
-  background-color: #ccc;
-}
+/* 列カラー */
+.vip.col1 { background:#4caf50; color:#fff; }
+.vip.col2 { background:#2196f3; color:#fff; }
+.vip.col3 { background:#ff9800; color:#fff; }
+.vip.col4 { background:#e91e63; color:#fff; }
+
+.nonvip.col1 { background:#c8e6c9; }
+.nonvip.col2 { background:#bbdefb; }
+.nonvip.col3 { background:#ffe0b2; }
+.nonvip.col4 { background:#f8bbd0; }
 
 .char-vip {
-  background-color: #4caf50;
-  color: white;
-}
-
-th input {
-  width: 90%;
+  background:#4caf50;
+  color:#fff;
 }
 </style>
 </head>
@@ -103,222 +115,85 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* ===== 全キャラ（略称は公式URL準拠） ===== */
+/* ===== 全キャラ ===== */
 const fighters = [
-  "mario",
-  "donkey_kong",
-  "link",
-  "samus",
-  "dark_samus",
-  "yoshi",
-  "kirby",
-  "fox",
-  "pikachu",
-  "luigi",
-  "ness",
-  "captain_falcon",
-  "purin",
-  "peach",
-  "daisy",
-  "koopa",
-  "ice_climber",
-  "sheik",
-  "zelda",
-  "dr_mario",
-  "pichu",
-  "falco",
-  "marth",
-  "lucina",
-  "young_link",
-  "ganondorf",
-  "mewtwo",
-  "roy",
-  "chrom",
-  "mr_game_and_watch",
-  "meta_knight",
-  "pit",
-  "black_pit",
-  "zero_suit_samus",
-  "wario",
-  "snake",
-  "ike",
-  "pokemon_trainer",
-  "diddy_kong",
-  "lucas",
-  "sonic",
-  "dedede",
-  "olimar",
-  "lucario",
-  "robot",
-  "toon_link",
-  "wolf",
-  "villager",
-  "rockman",
-  "wii_fit_trainer",
-  "rosetta_and_chiko",
-  "little_mac",
-  "gekkouga",
-  "palutena",
-  "pac_man",
-  "reflet",
-  "shulk",
-  "koopa_jr",
-  "duck_hunt",
-  "ryu",
-  "ken",
-  "cloud",
-  "kamui",
-  "bayonetta",
-  "inkling",
-  "ridley",
-  "simon",
-  "richter",
-  "king_k_rool",
-  "shizue",
-  "gaogaen",
-  "packun_flower",
-  "joker",
-  "dq_hero",
-  "banjo_and_kazooie",
-  "terry",
-  "byleth",
-  "minmin",
-  "steve",
-  "sephiroth",
-  "pyra",
-  "kazuya",
-  "sora",
-  "mii_fighter_1",
-  "mii_fighter_2",
-  "mii_fighter_3"
+"mario","donkey_kong","link","samus","dark_samus","yoshi","kirby","fox",
+"pikachu","luigi","ness","captain_falcon","purin","peach","daisy","koopa",
+"ice_climber","sheik","zelda","dr_mario","pichu","falco","marth","lucina",
+"young_link","ganondorf","mewtwo","roy","chrom","mr_game_and_watch",
+"meta_knight","pit","black_pit","zero_suit_samus","wario","snake","ike",
+"pokemon_trainer","diddy_kong","lucas","sonic","dedede","olimar","lucario",
+"robot","toon_link","wolf","villager","rockman","wii_fit_trainer",
+"rosetta_and_chiko","little_mac","gekkouga","palutena","pac_man","reflet",
+"shulk","koopa_jr","duck_hunt","ryu","ken","cloud","kamui","bayonetta",
+"inkling","ridley","simon","richter","king_k_rool","shizue","gaogaen",
+"packun_flower","joker","dq_hero","banjo_and_kazooie","terry","byleth",
+"minmin","steve","sephiroth","pyra","kazuya","sora",
+"mii_fighter_1","mii_fighter_2","mii_fighter_3"
 ];
 
-/* 表示名（最低限） */
+/* ===== 名前 ===== */
 const nameMap = {
-  mario:"マリオ",
-  donkey_kong:"ドンキーコング",
-  link:"リンク",
-  samus:"サムス",
-  dark_samus:"ダークサムス",
-  yoshi:"ヨッシー",
-  kirby:"カービィ",
-  fox:"フォックス",
-  pikachu:"ピカチュウ",
-  luigi:"ルイージ",
-  ness:"ネス",
-  captain_falcon:"キャプテン・ファルコン",
-  purin:"プリン",
-  peach:"ピーチ",
-  daisy:"デイジー",
-  koopa:"クッパ",
-  ice_climber:"アイスクライマー",
-  sheik:"シーク",
-  zelda:"ゼルダ",
-  dr_mario:"ドクターマリオ",
-  pichu:"ピチュー",
-  falco:"ファルコ",
-  marth:"マルス",
-  lucina:"ルキナ",
-  young_link:"こどもリンク",
-  ganondorf:"ガノンドロフ",
-  mewtwo:"ミュウツー",
-  roy:"ロイ",
-  chrom:"クロム",
-  mr_game_and_watch:"Mr.ゲーム&ウォッチ",
-  meta_knight:"メタナイト",
-  pit:"ピット",
-  black_pit:"ブラックピット",
-  zero_suit_samus:"ゼロスーツサムス",
-  wario:"ワリオ",
-  snake:"スネーク",
-  ike:"アイク",
-  pokemon_trainer:"ポケモントレーナー",
-  diddy_kong:"ディディーコング",
-  lucas:"リュカ",
-  sonic:"ソニック",
-  dedede:"デデデ",
-  olimar:"ピクミン&オリマー",
-  lucario:"ルカリオ",
-  robot:"ロボット",
-  toon_link:"トゥーンリンク",
-  wolf:"ウルフ",
-  villager:"むらびと",
-  rockman:"ロックマン",
-  wii_fit_trainer:"Wii Fit トレーナー",
-  rosetta_and_chiko:"ロゼッタ&チコ",
-  little_mac:"リトル・マック",
-  gekkouga:"ゲッコウガ",
-  palutena:"パルテナ",
-  pac_man:"パックマン",
-  reflet:"ルフレ",
-  shulk:"シュルク",
-  koopa_jr:"クッパ Jr.",
-  duck_hunt:"ダックハント",
-  ryu:"リュウ",
-  ken:"ケン",
-  cloud:"クラウド",
-  kamui:"カムイ",
-  bayonetta:"ベヨネッタ",
-  inkling:"インクリング",
-  ridley:"リドリー",
-  simon:"シモン",
-  richter:"リヒター",
-  king_k_rool:"キングクルール",
-  shizue:"しずえ",
-  gaogaen:"ガオガエン",
-  packun_flower:"パックンフラワー",
-  joker:"ジョーカー",
-  dq_hero:"勇者",
-  banjo_and_kazooie:"バンジョー&カズーイ",
-  terry:"テリー",
-  byleth:"ベレト / ベレス",
-  minmin:"ミェンミェン",
-  steve:"スティーブ",
-  sephiroth:"セフィロス",
-  pyra:"ホムラ / ヒカリ",
-  kazuya:"カズヤ",
-  sora:"ソラ",
-  mii_fighter_1:"Miiファイター (格闘タイプ)",
-  mii_fighter_2:"Miiファイター (剣術タイプ)",
-  mii_fighter_3:"Miiファイター (射撃タイプ)"  
+mario:"マリオ",donkey_kong:"ドンキーコング",link:"リンク",samus:"サムス",
+dark_samus:"ダークサムス",yoshi:"ヨッシー",kirby:"カービィ",fox:"フォックス",
+pikachu:"ピカチュウ",luigi:"ルイージ",ness:"ネス",
+captain_falcon:"キャプテン・ファルコン",purin:"プリン",peach:"ピーチ",
+daisy:"デイジー",koopa:"クッパ",ice_climber:"アイスクライマー",
+sheik:"シーク",zelda:"ゼルダ",dr_mario:"ドクターマリオ",pichu:"ピチュー",
+falco:"ファルコ",marth:"マルス",lucina:"ルキナ",young_link:"こどもリンク",
+ganondorf:"ガノンドロフ",mewtwo:"ミュウツー",roy:"ロイ",chrom:"クロム",
+mr_game_and_watch:"Mr.ゲーム&ウォッチ",meta_knight:"メタナイト",
+pit:"ピット",black_pit:"ブラックピット",zero_suit_samus:"ゼロスーツサムス",
+wario:"ワリオ",snake:"スネーク",ike:"アイク",
+pokemon_trainer:"ポケモントレーナー",diddy_kong:"ディディーコング",
+lucas:"リュカ",sonic:"ソニック",dedede:"デデデ",olimar:"ピクミン&オリマー",
+lucario:"ルカリオ",robot:"ロボット",toon_link:"トゥーンリンク",
+wolf:"ウルフ",villager:"むらびと",rockman:"ロックマン",
+wii_fit_trainer:"Wii Fit トレーナー",rosetta_and_chiko:"ロゼッタ&チコ",
+little_mac:"リトル・マック",gekkouga:"ゲッコウガ",palutena:"パルテナ",
+pac_man:"パックマン",reflet:"ルフレ",shulk:"シュルク",
+koopa_jr:"クッパ Jr.",duck_hunt:"ダックハント",ryu:"リュウ",ken:"ケン",
+cloud:"クラウド",kamui:"カムイ",bayonetta:"ベヨネッタ",
+inkling:"インクリング",ridley:"リドリー",simon:"シモン",
+richter:"リヒター",king_k_rool:"キングクルール",shizue:"しずえ",
+gaogaen:"ガオガエン",packun_flower:"パックンフラワー",
+joker:"ジョーカー",dq_hero:"勇者",banjo_and_kazooie:"バンジョー&カズーイ",
+terry:"テリー",byleth:"ベレト / ベレス",minmin:"ミェンミェン",
+steve:"スティーブ",sephiroth:"セフィロス",pyra:"ホムラ / ヒカリ",
+kazuya:"カズヤ",sora:"ソラ",
+mii_fighter_1:"Mii格闘",mii_fighter_2:"Mii剣術",mii_fighter_3:"Mii射撃"
 };
 
-/* ===== 描画 ===== */
 const tbody = document.querySelector("#table tbody");
 
+/* ===== 描画 ===== */
 fighters.forEach((id, i) => {
   const tr = document.createElement("tr");
 
-  // 画像
   const tdImg = document.createElement("td");
   const img = document.createElement("img");
-  if (id == "mii_fighter_1"){
-    img.src = 'https://smashwiki.info/Mii_%E6%A0%BC%E9%97%98%E3%82%BF%E3%82%A4%E3%83%97_(SP)#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:%E5%85%AC%E5%BC%8F%E7%B5%B5_SP_Mii_%E6%A0%BC%E9%97%98%E3%82%BF%E3%82%A4%E3%83%97.png';
-  }else if (id == "mii_fighter_2"){
-    img.src = 'https://smashwiki.info/Mii_%E5%89%A3%E8%A1%93%E3%82%BF%E3%82%A4%E3%83%97_%28SP%29#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:%E5%85%AC%E5%BC%8F%E7%B5%B5_SP_Mii_%E5%89%A3%E8%A1%93%E3%82%BF%E3%82%A4%E3%83%97.png';
-  }else if (id == "mii_fighter_3"){
-    img.src = 'https://smashwiki.info/Mii_%E5%B0%84%E6%92%83%E3%82%BF%E3%82%A4%E3%83%97_(SP)#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:%E5%85%AC%E5%BC%8F%E7%B5%B5_SP_Mii_%E5%B0%84%E6%92%83%E3%82%BF%E3%82%A4%E3%83%97.png';
-  }else {
+
+  if (id.startsWith("mii_fighter")) {
+    img.src = "https://via.placeholder.com/80";
+  } else {
     img.src = `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`;
   }
+
   img.className = "icon";
   tdImg.appendChild(img);
   tr.appendChild(tdImg);
 
-  // 名前
   const tdName = document.createElement("td");
   tdName.textContent = nameMap[id] || id;
   tdName.className = "char-cell char-name";
   tr.appendChild(tdName);
 
-  // ボタン
   for (let col = 1; col <= 4; col++) {
     const td = document.createElement("td");
     const btn = document.createElement("button");
 
     btn.textContent = "非VIP";
-    btn.className = "nonvip";
-
+    btn.className = `nonvip col${col}`;
     btn.onclick = () => toggle(i, col, btn);
 
     td.appendChild(btn);
@@ -334,21 +209,19 @@ function toggle(row, col, btn) {
   const newVal = isVIP ? "非VIP" : "VIP";
 
   btn.textContent = newVal;
-  btn.className = isVIP ? "nonvip" : "vip";
+  btn.className = (isVIP ? "nonvip" : "vip") + " col" + col;
 
   db.ref(`vip/${row}/${col}`).set(newVal);
-
   updateRowColor(row);
 }
 
 /* ===== 行色 ===== */
 function updateRowColor(row) {
   const tr = document.querySelectorAll("tbody tr")[row];
-  const buttons = tr.querySelectorAll("button");
-  const hasVIP = Array.from(buttons).some(b => b.textContent === "VIP");
+  const hasVIP = Array.from(tr.querySelectorAll("button"))
+    .some(b => b.textContent === "VIP");
 
   const nameCell = tr.querySelector(".char-name");
-
   if (hasVIP) nameCell.classList.add("char-vip");
   else nameCell.classList.remove("char-vip");
 }
@@ -366,32 +239,32 @@ db.ref().on("value", snap => {
 
         if (val === "VIP") {
           btn.textContent = "VIP";
-          btn.className = "vip";
+          btn.className = `vip col${col}`;
         } else {
           btn.textContent = "非VIP";
-          btn.className = "nonvip";
+          btn.className = `nonvip col${col}`;
         }
       }
       updateRowColor(row);
     });
   }
-  // ヘッダー復元
+
   if (data.headers) {
-    document.getElementById("col1").value = data.headers.col1 || "";
-    document.getElementById("col2").value = data.headers.col2 || "";
-    document.getElementById("col3").value = data.headers.col3 || "";
-    document.getElementById("col4").value = data.headers.col4 || "";
+    col1.value = data.headers.col1 || "";
+    col2.value = data.headers.col2 || "";
+    col3.value = data.headers.col3 || "";
+    col4.value = data.headers.col4 || "";
   }
 });
 
-// ヘッダー保存
+/* ===== ヘッダー保存 ===== */
 ["col1","col2","col3","col4"].forEach(id => {
   document.getElementById(id).addEventListener("input", () => {
     db.ref("headers").set({
-      col1: document.getElementById("col1").value,
-      col2: document.getElementById("col2").value,
-      col3: document.getElementById("col3").value,
-      col4: document.getElementById("col4").value
+      col1: col1.value,
+      col2: col2.value,
+      col3: col3.value,
+      col4: col4.value
     });
   });
 });
