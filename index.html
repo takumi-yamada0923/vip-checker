@@ -28,7 +28,7 @@ thead th {
   position: sticky;
   top: 0;
   background: #fff;
-  z-index: 10;
+  z-index: 100;
 }
 
 /* ===== ヘッダー ===== */
@@ -37,20 +37,16 @@ th {
   font-size: 1.2em;
 }
 
-/* ★ 下線だけ色付け（今回の本命） */
-th.col1 { box-shadow: inset 0 -8px 0 #4caf50; }
-th.col2 { box-shadow: inset 0 -8px 0 #2196f3; }
-th.col3 { box-shadow: inset 0 -8px 0 #ff9800; }
-th.col4 { box-shadow: inset 0 -8px 0 #e91e63; }
+/* ★ 色ライン（2倍） */
+th.col1 { border-bottom: 8px solid #4caf50; }
+th.col2 { border-bottom: 8px solid #2196f3; }
+th.col3 { border-bottom: 8px solid #ff9800; }
+th.col4 { border-bottom: 8px solid #e91e63; }
 
 th input {
   height: 40px;
   font-size: 1.1em;
   width: 90%;
-  background: #fff;
-  color: #000;
-  border: 1px solid #ccc;
-  text-align: center;
 }
 
 /* ===== キャラ ===== */
@@ -74,7 +70,7 @@ td {
   height: 70px;
 }
 
-/* ===== ボタン（完全フィット） ===== */
+/* ===== ボタン ===== */
 td button {
   display: block;
   width: 100%;
@@ -84,7 +80,7 @@ td button {
   cursor: pointer;
 }
 
-/* ===== VIPカラー ===== */
+/* VIP色 */
 .vip.col1 { background:#4caf50; color:#fff; }
 .vip.col2 { background:#2196f3; color:#fff; }
 .vip.col3 { background:#ff9800; color:#fff; }
@@ -96,7 +92,7 @@ td button {
   color:#000;
 }
 
-/* ===== 上部ヘッダー ===== */
+/* ===== ヘッダー上部 ===== */
 .header {
   display: flex;
   justify-content: space-between;
@@ -163,7 +159,7 @@ const colColors = {
   4: "#e91e63"
 };
 
-/* キャラ */
+/* ===== キャラ ===== */
 const fighters = [
 "mario","donkey_kong","link","samus","dark_samus","yoshi","kirby","fox",
 "pikachu","luigi","ness","captain_falcon","purin","peach","daisy","koopa",
@@ -180,6 +176,7 @@ const fighters = [
 "mii_fighter_1","mii_fighter_2","mii_fighter_3"
 ];
 
+/* 名前 */
 const nameMap = {
 mario:"マリオ",donkey_kong:"ドンキーコング",link:"リンク",samus:"サムス",
 dark_samus:"ダークサムス",yoshi:"ヨッシー",kirby:"カービィ",fox:"フォックス",
@@ -230,7 +227,7 @@ fighters.forEach((id, i) => {
   tr.appendChild(tdImg);
 
   const tdName = document.createElement("td");
-  tdName.textContent = nameMap[id] || id;
+  tdName.textContent = nameMap[id];
   tdName.className = "char-cell char-name";
   tr.appendChild(tdName);
 
@@ -258,7 +255,90 @@ function toggle(row, col, btn) {
   btn.className = (isVIP ? "nonvip" : "vip") + " col" + col;
 
   db.ref(`vip/${row}/${col}`).set(newVal);
+  updateRowColor(row);
 }
+
+/* ★ グラデーション復活 */
+function updateRowColor(row) {
+  const tr = document.querySelectorAll("tbody tr")[row];
+  const buttons = tr.querySelectorAll("button");
+  const cell = tr.querySelector(".char-name");
+
+  const active = [];
+  buttons.forEach((b, i) => {
+    if (b.textContent === "VIP") active.push(i + 1);
+  });
+
+  if (active.length === 0) {
+    cell.style.background = "";
+    cell.style.color = "";
+    return;
+  }
+
+  const colors = active.map(c => colColors[c]);
+
+  if (colors.length === 1) {
+    cell.style.background = colors[0];
+    cell.style.color = "#fff";
+    return;
+  }
+
+  const step = 100 / colors.length;
+  let g = "linear-gradient(to right,";
+
+  colors.forEach((c, i) => {
+    const s = step * i;
+    const e = step * (i + 1);
+    g += `${c} ${s}%, ${c} ${e}%,`;
+  });
+
+  g = g.slice(0, -1) + ")";
+  cell.style.background = g;
+  cell.style.color = "#fff";
+}
+
+/* Firebase */
+db.ref().on("value", snap => {
+  const data = snap.val();
+  if (!data) return;
+
+  if (data.vip) {
+    document.querySelectorAll("tbody tr").forEach((tr, row) => {
+      for (let col = 1; col <= 4; col++) {
+        const btn = tr.children[col+1].querySelector("button");
+        const val = data.vip?.[row]?.[col];
+
+        if (val === "VIP") {
+          btn.textContent = "VIP";
+          btn.className = `vip col${col}`;
+        } else {
+          btn.textContent = "非VIP";
+          btn.className = `nonvip col${col}`;
+        }
+      }
+      updateRowColor(row);
+    });
+  }
+
+  if (data.headers) {
+    col1.value = data.headers.col1 || "";
+    col2.value = data.headers.col2 || "";
+    col3.value = data.headers.col3 || "";
+    col4.value = data.headers.col4 || "";
+  }
+});
+
+/* ヘッダー保存 */
+["col1","col2","col3","col4"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    db.ref("headers").set({
+      col1: col1.value,
+      col2: col2.value,
+      col3: col3.value,
+      col4: col4.value
+    });
+  });
+});
 </script>
 
 </body>
